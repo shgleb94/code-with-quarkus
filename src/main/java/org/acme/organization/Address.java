@@ -1,8 +1,11 @@
 package org.acme.organization;
 
 import io.smallrye.mutiny.Multi;
+import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.pgclient.PgPool;
 import io.vertx.mutiny.sqlclient.Row;
+
+import java.util.List;
 
 public class Address {
 
@@ -23,14 +26,14 @@ public class Address {
         this.apartment = apartment;
     }
     public static Address from(Row row) {
-        return new Address(row.getLong("region_code"), row.getString("street"), row.getString("house"),
+        return new Address(row.getLong("region_id"), row.getString("street"), row.getString("house"),
                 row.getString("housing"), row.getString("apartment"));
     }
 
-    public static Multi<Address> findAll(PgPool client) {
+    public static Uni<List<Address>> findAll(PgPool client) {
         return client.query("SELECT * FROM public.address").execute()
                 .onItem().transformToMulti(set -> Multi.createFrom().iterable(set))
-                .onItem().transform(Address::from);
+                .onItem().transform(Address::from).collect().asList();
     }
 
     public long getRegionCode() {

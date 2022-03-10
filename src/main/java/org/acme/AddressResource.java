@@ -6,6 +6,7 @@ import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowSet;
 import org.acme.organization.Address;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.resteasy.reactive.RestSseElementType;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
@@ -14,14 +15,29 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import java.util.List;
+
+import static javax.ws.rs.core.Response.ok;
+
 @Path("/hello")
 public class AddressResource {
     @Inject
     io.vertx.mutiny.pgclient.PgPool client;
 
     @GET
-    public Multi<Address> get() {
-        return Address.findAll(client);
+    @Produces(MediaType.APPLICATION_JSON)
+// Each element will be sent as JSON
+   @RestSseElementType(MediaType.APPLICATION_JSON)
+    public Uni<List<Address>> get() {
+        System.out.println(Address.findAll(client).map(address -> address));
+        return Address.findAll(client).map(addresses -> addresses);
+
+
+             /*   .map(address ->)
+                .collect().asList()
+                .await().indefinitely();
+
+                .map(data -> (data));*/
     }
 
 }
