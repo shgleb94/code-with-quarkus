@@ -21,11 +21,11 @@ import java.util.List;
 
 import static javax.ws.rs.core.Response.ok;
 
-@Path("/organisations/register-organisation")
+@Path("/organisations")
 public class OrganisationResource {
     @Inject
     PgPool client;
-
+    @Path("/register-organisation")
     @POST
     public Uni<Response> createOrg(Organization organization) throws SQLException {
 
