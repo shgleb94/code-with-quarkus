@@ -1,4 +1,6 @@
 package org.acme.organization;
+
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.pgclient.PgPool;
 import io.vertx.mutiny.sqlclient.PreparedStatement;
@@ -26,6 +28,21 @@ public class Organization {
     public Organization() {
     }
 
+    public Organization(String iinBin) {
+        this.iinBin = iinBin;
+    }
+
+    public Organization(long id, String iinBin, String title, String email, String phone, String bic, String paymentAccount, String billingAccountNumber) {
+        this.id = id;
+        this.iinBin = iinBin;
+        this.title = title;
+        this.email = email;
+        this.phone = phone;
+        this.bic = bic;
+        this.paymentAccount = paymentAccount;
+        this.billingAccountNumber = billingAccountNumber;
+    }
+
     public Organization(long id, String iinBin, String title, String email, String phone, String bic, String paymentAccount, Address address, String billingAccountNumber) {
         this.id = id;
         this.iinBin = iinBin;
@@ -39,17 +56,28 @@ public class Organization {
     }
 
     public static Uni<RowSet<Row>> create(PgPool client, Organization organization) throws SQLException {
-Long id_sec = null;
-client.preparedQuery("select nextval('organization_id_seq')").execute().onItem().transform(m->m.iterator().next().getLong("nextval"));
+        Long id_sec = null;
+        client.preparedQuery("select nextval('organization_id_seq')").execute().onItem().transform(m -> m.iterator().next().getLong("nextval"));
 
 
         return client
                 .preparedQuery("INSERT INTO organization (id,iin_bin,title,email,phone,bic,payment_account) " +
                         "VALUES (60,$1,$2,$3,$4,$5,$6)")
-                .execute(Tuple.of(organization.getIinBin(),organization.getTitle(),organization.getEmail(),organization.getPhone(),organization.getBic(),organization.getPaymentAccount()));
+                .execute(Tuple.of(organization.getIinBin(), organization.getTitle(), organization.getEmail(), organization.getPhone(), organization.getBic(), organization.getPaymentAccount()));
 //
     }
 
+    public static Uni<Organization> checkOrganization (PgPool client, Organization organization) {
+        return client.preparedQuery("SELECT * FROM organization WHERE iin_bin = $1").execute(Tuple.of(organization.getIinBin()))
+                .onItem().transform(RowSet::iterator)
+                .onItem().transform(iterator -> iterator.hasNext() ? from(iterator.next()) : null);
+    }
+
+    private static Organization from(Row row) {
+        return new Organization(row.getLong("id"), row.getString("iin_bin"),
+                row.getString("title"), row.getString("email"), row.getString("phone"),
+                row.getString("bic"), row.getString("payment_account"), row.getString("billing_account_number"));
+    }
 
     public long getId() {
         return id;
