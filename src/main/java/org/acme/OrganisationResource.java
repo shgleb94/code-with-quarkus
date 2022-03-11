@@ -27,7 +27,7 @@ public class OrganisationResource {
                 .transform(id -> URI.create("/organisation/" + id))
                 .onItem()
                 .transform(uri -> Response.created(uri).build());
-        //
+
 //
 
 
