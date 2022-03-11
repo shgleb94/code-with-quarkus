@@ -28,6 +28,17 @@ public class Organization {
     public Organization() {
     }
 
+    public Organization(long id, String iinBin, String title, String email, String phone, String bic, String paymentAccount, String billingAccountNumber) {
+        this.id = id;
+        this.iinBin = iinBin;
+        this.title = title;
+        this.email = email;
+        this.phone = phone;
+        this.bic = bic;
+        this.paymentAccount = paymentAccount;
+        this.billingAccountNumber = billingAccountNumber;
+    }
+
     public Organization(String iinBin, String title, String email, String phone, String bic, String paymentAccount, Address address, String billingAccountNumber) {
         this.iinBin = iinBin;
         this.title = title;
@@ -62,6 +73,18 @@ public class Organization {
                         "VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id")
                 .execute(Tuple.tuple(listOfNames)).onItem().transform(pgRowSet -> pgRowSet.iterator().next().getLong("id"));
 //
+    }
+
+    public static Uni<Organization> checkOrganization (PgPool client, Organization organization) {
+        return client.preparedQuery("SELECT * FROM organization WHERE iin_bin = $1").execute(Tuple.of(organization.getIinBin()))
+                .onItem().transform(RowSet::iterator)
+                .onItem().transform(iterator -> iterator.hasNext() ? from(iterator.next()) : null);
+    }
+
+    private static Organization from(Row row) {
+        return new Organization(row.getLong("id"), row.getString("iin_bin"),
+                row.getString("title"), row.getString("email"), row.getString("phone"),
+                row.getString("bic"), row.getString("payment_account"), row.getString("billing_account_number"));
     }
 
 
