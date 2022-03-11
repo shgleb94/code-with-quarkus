@@ -47,7 +47,7 @@ client.preparedQuery("select nextval('organization_id_seq')").execute().onItem()
                 .preparedQuery("INSERT INTO organization (id,iin_bin,title,email,phone,bic,payment_account) " +
                         "VALUES (60,$1,$2,$3,$4,$5,$6)")
                 .execute(Tuple.of(organization.getIinBin(),organization.getTitle(),organization.getEmail(),organization.getPhone(),organization.getBic(),organization.getPaymentAccount()));
-
+//
     }
 
 
