@@ -44,4 +44,5 @@ public class OrganisationResource {
         return Organization.checkOrganization(client, organization).onItem().transform(organization1 -> organization1 != null ? Response.ok(organization1) : Response.status(RestResponse.Status.NOT_FOUND))
                 .onItem().transform(Response.ResponseBuilder::build);
     }
+    //
 }

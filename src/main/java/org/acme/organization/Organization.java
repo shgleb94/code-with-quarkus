@@ -86,6 +86,8 @@ public class Organization {
                 row.getString("title"), row.getString("email"), row.getString("phone"),
                 row.getString("bic"), row.getString("payment_account"), row.getString("billing_account_number"));
     }
+    //
+
 
 
     public long getId() {
