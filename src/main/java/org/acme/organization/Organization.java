@@ -1,6 +1,4 @@
 package org.acme.organization;
-
-import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.pgclient.PgPool;
 import io.vertx.mutiny.sqlclient.PreparedStatement;
@@ -11,6 +9,8 @@ import io.vertx.mutiny.sqlclient.Tuple;
 import javax.ws.rs.core.Response;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class Organization {
@@ -28,18 +28,14 @@ public class Organization {
     public Organization() {
     }
 
-    public Organization(String iinBin) {
-        this.iinBin = iinBin;
-    }
-
-    public Organization(long id, String iinBin, String title, String email, String phone, String bic, String paymentAccount, String billingAccountNumber) {
-        this.id = id;
+    public Organization(String iinBin, String title, String email, String phone, String bic, String paymentAccount, Address address, String billingAccountNumber) {
         this.iinBin = iinBin;
         this.title = title;
         this.email = email;
         this.phone = phone;
         this.bic = bic;
         this.paymentAccount = paymentAccount;
+        this.address = address;
         this.billingAccountNumber = billingAccountNumber;
     }
 
@@ -55,29 +51,19 @@ public class Organization {
         this.billingAccountNumber = billingAccountNumber;
     }
 
-    public static Uni<RowSet<Row>> create(PgPool client, Organization organization) throws SQLException {
-        Long id_sec = null;
-        client.preparedQuery("select nextval('organization_id_seq')").execute().onItem().transform(m -> m.iterator().next().getLong("nextval"));
-
+    public static Uni<Long> create(PgPool client, Organization organization) throws SQLException {
+//Long id_sec = null;
+//client.preparedQuery("select nextval('organization_id_seq')").execute().onItem().transform(m->m.iterator().next().getLong("nextval"));
+       List<Object> listOfNames = Arrays.asList(organization.getIinBin(),organization.getTitle(),organization.getEmail(),organization.getPhone(),organization.getBic(),organization.getPaymentAccount(),organization.getBillingAccountNumber());
 
         return client
-                .preparedQuery("INSERT INTO organization (id,iin_bin,title,email,phone,bic,payment_account) " +
-                        "VALUES (60,$1,$2,$3,$4,$5,$6)")
-                .execute(Tuple.of(organization.getIinBin(), organization.getTitle(), organization.getEmail(), organization.getPhone(), organization.getBic(), organization.getPaymentAccount()));
+                .preparedQuery("INSERT INTO organization " +
+                        "(iin_bin,title,email,phone,bic,payment_account,billing_account_number ) " +
+                        "VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id")
+                .execute(Tuple.tuple(listOfNames)).onItem().transform(pgRowSet -> pgRowSet.iterator().next().getLong("id"));
 //
     }
 
-    public static Uni<Organization> checkOrganization (PgPool client, Organization organization) {
-        return client.preparedQuery("SELECT * FROM organization WHERE iin_bin = $1").execute(Tuple.of(organization.getIinBin()))
-                .onItem().transform(RowSet::iterator)
-                .onItem().transform(iterator -> iterator.hasNext() ? from(iterator.next()) : null);
-    }
-
-    private static Organization from(Row row) {
-        return new Organization(row.getLong("id"), row.getString("iin_bin"),
-                row.getString("title"), row.getString("email"), row.getString("phone"),
-                row.getString("bic"), row.getString("payment_account"), row.getString("billing_account_number"));
-    }
 
     public long getId() {
         return id;
