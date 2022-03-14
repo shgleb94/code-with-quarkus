@@ -39,6 +39,19 @@ public class OrganisationResource {
                 .transform(uri  -> Response.ok(organization).status(CREATED).build());
     }
 
+    @Path("/change-organisation")
+    @POST
+    public Uni<Response> ChangeOrg(Organization organization) throws SQLException {
+
+
+
+        return Organization.changeOrg(client, organization)
+                .onItem()
+                .transform(id -> URI.create("/organisations" + organization.getId()))
+                .onItem()
+                .transform(uri  -> Response.ok(organization).status(CREATED).build());
+    }
+
     @POST
     @Path("/check")
     @Produces(MediaType.APPLICATION_JSON)

@@ -2,6 +2,7 @@ package org.acme.organization;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.pgclient.PgPool;
+import io.vertx.mutiny.sqlclient.PreparedQuery;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowSet;
 import io.vertx.mutiny.sqlclient.Tuple;
@@ -87,6 +88,18 @@ public class Organization {
 
 
 //
+    }
+
+
+    public static Uni<Organization> changeOrg(PgPool client, Organization organization) throws SQLException {
+
+        List<Object> listOfOrg = Arrays.asList(organization.getIinBin(),organization.getTitle(),organization.getEmail(),organization.getPhone(),organization.getBic(),organization.getPaymentAccount(),organization.getBillingAccountNumber());
+
+        return client.preparedQuery("UPDATE organization set iin_bin = $1,title = $2,email = $3,phone = $4,bic = $5,payment_account = $6,billing_account_number = $7  WHERE iin_bin = $1").execute(Tuple.tuple(listOfOrg))
+                .onItem().transform(RowSet::iterator)
+                .onItem().transform(iterator -> iterator.hasNext() ? from(iterator.next()) : null);
+
+
     }
 
     public static Uni<Organization> checkOrganization (PgPool client, Organization organization) {
