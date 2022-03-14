@@ -1,20 +1,18 @@
 package org.acme.organization;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.pgclient.PgPool;
-import io.vertx.mutiny.sqlclient.PreparedStatement;
 import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowSet;
 import io.vertx.mutiny.sqlclient.Tuple;
 
-import javax.ws.rs.core.Response;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
 
 public class Organization {
-
+    @JsonIgnoreProperties(ignoreUnknown = false)
     private long id;
     private String iinBin;
     private String title;
@@ -22,7 +20,8 @@ public class Organization {
     private String phone;
     private String bic;
     private String paymentAccount;
-    private Address address;
+    private LegalAddress legalAddress;
+    private ActualAddress actualAddress;
     private String billingAccountNumber;
 
     public Organization() {
@@ -39,18 +38,7 @@ public class Organization {
         this.billingAccountNumber = billingAccountNumber;
     }
 
-    public Organization(String iinBin, String title, String email, String phone, String bic, String paymentAccount, Address address, String billingAccountNumber) {
-        this.iinBin = iinBin;
-        this.title = title;
-        this.email = email;
-        this.phone = phone;
-        this.bic = bic;
-        this.paymentAccount = paymentAccount;
-        this.address = address;
-        this.billingAccountNumber = billingAccountNumber;
-    }
-
-    public Organization(long id, String iinBin, String title, String email, String phone, String bic, String paymentAccount, Address address, String billingAccountNumber) {
+    public Organization(Long id,String iinBin, String title, String email, String phone, String bic, String paymentAccount, LegalAddress legalAddress,ActualAddress actualAddress, String billingAccountNumber) {
         this.id = id;
         this.iinBin = iinBin;
         this.title = title;
@@ -58,20 +46,46 @@ public class Organization {
         this.phone = phone;
         this.bic = bic;
         this.paymentAccount = paymentAccount;
-        this.address = address;
+        this.legalAddress = legalAddress;
+        this.actualAddress = actualAddress;
         this.billingAccountNumber = billingAccountNumber;
     }
 
-    public static Uni<Long> create(PgPool client, Organization organization) throws SQLException {
+    public Organization(String iinBin, String title, String email, String phone, String bic, String paymentAccount, LegalAddress legalAddress,ActualAddress actualAddress, String billingAccountNumber) {
+
+        this.iinBin = iinBin;
+        this.title = title;
+        this.email = email;
+        this.phone = phone;
+        this.bic = bic;
+        this.paymentAccount = paymentAccount;
+        this.legalAddress = legalAddress;
+        this.actualAddress = actualAddress;
+        this.billingAccountNumber = billingAccountNumber;
+    }
+
+    public static Uni<Void> create(PgPool client, Organization organization) throws SQLException {
 //Long id_sec = null;
 //client.preparedQuery("select nextval('organization_id_seq')").execute().onItem().transform(m->m.iterator().next().getLong("nextval"));
-       List<Object> listOfNames = Arrays.asList(organization.getIinBin(),organization.getTitle(),organization.getEmail(),organization.getPhone(),organization.getBic(),organization.getPaymentAccount(),organization.getBillingAccountNumber());
+       List<Object> listOfOrg = Arrays.asList(organization.getIinBin(),organization.getTitle(),organization.getEmail(),organization.getPhone(),organization.getBic(),organization.getPaymentAccount(),organization.getBillingAccountNumber());
+//       List<Object> listOfAddresses = Arrays.asList(organization.getLegalAddress().getRegionCode(),organization.getLegalAddress().getStreet(),organization.getLegalAddress().getHouse()
+//       ,organization.getLegalAddress().getHousing(),organization.getLegalAddress().getApartment());
 
-        return client
+//        System.out.println(listOfAddresses.toString());
+
+
+        Uni<RowSet<Row>> insertOne = client
                 .preparedQuery("INSERT INTO organization " +
                         "(iin_bin,title,email,phone,bic,payment_account,billing_account_number ) " +
-                        "VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id")
-                .execute(Tuple.tuple(listOfNames)).onItem().transform(pgRowSet -> pgRowSet.iterator().next().getLong("id"));
+                        "VALUES ($1,$2,$3,$4,$5,$6,$7)")
+                .execute(Tuple.tuple(listOfOrg));
+
+//        Uni<RowSet<Row>> insertTwo = client.preparedQuery("INSERT INTO address (organization_id,region_id,street,house,housing,apartment) VALUES ("+1+",$2,$3,$4,$5,$6) RETURNING ORGANIZATION_ID")
+//                .execute(Tuple.tuple(listOfAddresses));
+
+    return Uni.combine().all().unis(insertOne).discardItems();
+
+
 //
     }
 
@@ -146,12 +160,20 @@ public class Organization {
         this.paymentAccount = paymentAccount;
     }
 
-    public Address getAddress() {
-        return address;
+    public LegalAddress getLegalAddress() {
+        return legalAddress;
     }
 
-    public void setAddress(Address address) {
-        this.address = address;
+    public void setLegalAddress(LegalAddress legalAddress) {
+        this.legalAddress = legalAddress;
+    }
+
+    public ActualAddress getActualAddress() {
+        return actualAddress;
+    }
+
+    public void setActualAddress(ActualAddress actualAddress) {
+        this.actualAddress = actualAddress;
     }
 
     public String getBillingAccountNumber() {

@@ -7,7 +7,7 @@ import io.vertx.mutiny.sqlclient.Row;
 
 import java.util.List;
 
-public class Address {
+public class ActualAddress {
 
     private long regionCode;
     private String street;
@@ -15,26 +15,17 @@ public class Address {
     private String housing;
     private String apartment;
 
-    public Address() {
+    public ActualAddress() {
     }
 
-    public Address(long regionCode, String street, String house, String housing, String apartment) {
+    public ActualAddress(long regionCode, String street, String house, String housing, String apartment) {
         this.regionCode = regionCode;
         this.street = street;
         this.house = house;
         this.housing = housing;
         this.apartment = apartment;
     }
-    public static Address from(Row row) {
-        return new Address(row.getLong("region_id"), row.getString("street"), row.getString("house"),
-                row.getString("housing"), row.getString("apartment"));
-    }
 
-    public static Uni<List<Address>> findAll(PgPool client) {
-        return client.query("SELECT * FROM public.address").execute()
-                .onItem().transformToMulti(set -> Multi.createFrom().iterable(set))
-                .onItem().transform(Address::from).collect().asList();
-    }
 
     public long getRegionCode() {
         return regionCode;

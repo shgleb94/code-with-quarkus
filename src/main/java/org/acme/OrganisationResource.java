@@ -3,15 +3,13 @@ package org.acme;
 
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.pgclient.PgPool;
+import org.acme.organization.LegalAddress;
 import org.acme.organization.Organization;
 import org.jboss.resteasy.reactive.RestResponse;
 import org.jboss.resteasy.reactive.RestSseElementType;
 
 import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -20,6 +18,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import static javax.ws.rs.core.Response.ok;
+import static org.jboss.resteasy.reactive.RestResponse.Status.CREATED;
 
 @Path("/organisations")
 public class OrganisationResource {
@@ -28,12 +27,16 @@ public class OrganisationResource {
     @Path("/register-organisation")
     @POST
     public Uni<Response> createOrg(Organization organization) throws SQLException {
+        if (organization == null || organization.getId() != 0) {
+            throw new WebApplicationException("Id was invalidly set on request.", 422);
+        }
+
 
         return Organization.create(client, organization)
                 .onItem()
-                .transform(id -> URI.create("/organisation/" + id))
+                .transform(id -> URI.create("/organisations" + organization.getId()))
                 .onItem()
-                .transform(uri -> Response.created(uri).build());
+                .transform(uri  -> Response.ok(organization).status(CREATED).build());
     }
 
     @POST

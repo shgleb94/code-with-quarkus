@@ -6,7 +6,7 @@ import io.vertx.mutiny.sqlclient.Row;
 import io.vertx.mutiny.sqlclient.RowSet;
 import io.vertx.pgclient.PgPool;
 import io.vertx.sqlclient.Tuple;
-import org.acme.organization.Address;
+import org.acme.organization.LegalAddress;
 import org.acme.organization.Organization;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.resteasy.reactive.RestSseElementType;
@@ -33,10 +33,11 @@ public class AddressResource {
     @Produces(MediaType.APPLICATION_JSON)
 // Each element will be sent as JSON
    @RestSseElementType(MediaType.APPLICATION_JSON)
-    public Uni<List<Address>> get() {
-        System.out.println(Address.findAll(client).map(address -> address));
-        return Address.findAll(client).map(addresses -> addresses);
+    public Uni<List<LegalAddress>> get() {
+        System.out.println(LegalAddress.findAll(client).map(address -> address));
+        return LegalAddress.findAll(client).map(addresses -> addresses);
         //
+
 
 
              /*   .map(address ->)
